@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import puppeteer from "puppeteer";
 import http from "http";
 
