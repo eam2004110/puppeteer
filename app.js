@@ -8,7 +8,18 @@ let isLaunched = false;
 async function initPuppeteer() {
   try {
     if (!isLaunched) {
-      browser = await puppeteer.launch();
+      browser = await puppeteer.launch({
+        args: [
+          "--disable-setuid-sandbox",
+          "--no-sandbox",
+          "--single-process",
+          "--no-zygote",
+        ],
+        executablePath:
+          process.env.NODE_ENV === "production"
+            ? process.env.PUPPETEER_EXECUTABLE_PATH
+            : puppeteer.executablePath(),
+      });
       isLaunched = true;
     }
     if (!isPageOpened) {
@@ -37,11 +48,12 @@ const app = http.createServer(async (req, res) => {
       res.end();
       return;
     }
-    if (req.url === "/" && req.method === "GET") {
+    if (req.url.startsWith("/?url=") && req.method === "GET") {
       res.setHeader(
         "Content-Security-Policy",
         `default-src 'self'; script-src 'self'; media-src *; img-src *; connect-src *`
       );
+      const url = req.url.slice(6, req.url.length);
       if (!isLaunched || !isPageOpened) await initPuppeteer();
       await page.goto(url);
       const html = await page.evaluate(
