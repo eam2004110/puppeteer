@@ -4,6 +4,7 @@ import http from "http";
 const PORT = process.env.PORT || 4000;
 let browser, page;
 let isLaunched = false;
+let isPageOpened = false;
 async function initPuppeteer() {
   try {
     if (!isLaunched) {
