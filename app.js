@@ -29,6 +29,8 @@ async function initPuppeteer() {
       );
     }
   } catch (e) {
+    console.log(e.message);
+
     page = null;
   }
 }
