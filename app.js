@@ -3,6 +3,8 @@ import http from "http";
 
 const PORT = process.env.PORT || 4000;
 const ANTI_BOT_TITLES = process.env.ANTI_BOT_TITLES.split("|");
+console.log(process.env.ANTI_BOT_TITLES, process.env.NODE_ENV);
+
 let browser, page;
 async function initPuppeteer() {
   try {

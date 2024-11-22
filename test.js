@@ -10,7 +10,7 @@
   // setTimeout(async () => {
   const resp = await fetch(
     isLocal
-      ? "http://localhost:4000/?url=https://pixabay.com/images/search/night sky/"
+      ? "http://localhost:4000/?url=https://pixabay.com/images/search/night/"
       : "https://puppeteer-xy1o.onrender.com/?url=https://pixabay.com/images/search/sky/"
   );
   const text = await resp.text();
