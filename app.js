@@ -2,12 +2,11 @@ import puppeteer from "puppeteer";
 import http from "http";
 
 const PORT = process.env.PORT || 4000;
+const ANTI_BOT_TITLES = process.env.ANTI_BOT_TITLES.split("|");
 let browser, page;
-let isLaunched = false;
-let isPageOpened = false;
 async function initPuppeteer() {
   try {
-    if (!isLaunched) {
+    if (!browser) {
       browser = await puppeteer.launch({
         headless: true,
         args: [
@@ -21,19 +20,34 @@ async function initPuppeteer() {
             ? process.env.PUPPETEER_EXECUTABLE_PATH
             : puppeteer.executablePath(),
       });
-      isLaunched = true;
     }
-    if (!isPageOpened) {
+    if (!page) {
       page = await browser.newPage();
       await page.setViewport({ width: 1080, height: 1024 });
       await page.setUserAgent(
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
       );
-      isPageOpened = true;
     }
-  } catch {
-    isLaunched = false;
-    isPageOpened = false;
+  } catch (e) {
+    page = null;
+  }
+}
+async function bypassAntiBot(url) {
+  const title = await page.evaluate(
+    () => document.querySelector("title")?.innerText || ""
+  );
+  if (ANTI_BOT_TITLES.includes(title)) {
+    await page.close();
+    page = null;
+    await initPuppeteer();
+    console.log(url);
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+    return await bypassAntiBot(url);
+  } else {
+    const html = await page.content();
+    await page.close();
+    page = null;
+    return html;
   }
 }
 const app = http.createServer(async (req, res) => {
@@ -58,27 +72,9 @@ const app = http.createServer(async (req, res) => {
         `default-src 'self'; script-src 'self'; media-src *; img-src *; connect-src *`
       );
       const url = req.url.slice(6, req.url.length);
-      if (!isLaunched || !isPageOpened) await initPuppeteer();
+      if (!browser || !page) await initPuppeteer();
       await page.goto(url, { waitUntil: "domcontentloaded" });
-      await page.evaluate(async () => {
-        return new Promise((res) => {
-          const int = setInterval(() => {
-            console.log(document.querySelector("title"));
-
-            if (document.querySelector("title")) {
-              if (
-                !document.querySelector("title").innerText.includes("moment")
-              ) {
-                clearInterval(int);
-                res(document.querySelector("title"));
-              }
-            }
-          }, 1000);
-        });
-      });
-      const html = await page.content();
-      await page.close();
-      isPageOpened = false;
+      const html = await bypassAntiBot(url);
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(html);
       return;
@@ -91,10 +87,9 @@ const app = http.createServer(async (req, res) => {
     } catch {
     } finally {
       page = null;
-      isPageOpened = false;
     }
     res.writeHead(504, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: e }));
+    res.end(JSON.stringify({ error: e.message }));
   }
 });
 
