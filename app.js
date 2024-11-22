@@ -40,7 +40,7 @@ async function bypassAntiBot(url) {
     await page.close();
     page = null;
     await initPuppeteer();
-    console.log(url);
+    console.log(page);
     await page.goto(url, { waitUntil: "domcontentloaded" });
     return await bypassAntiBot(url);
   } else {
@@ -73,6 +73,7 @@ const app = http.createServer(async (req, res) => {
       );
       const url = req.url.slice(6, req.url.length);
       if (!browser || !page) await initPuppeteer();
+      console.log(page);
       await page.goto(url, { waitUntil: "domcontentloaded" });
       const html = await bypassAntiBot(url);
       res.writeHead(200, { "Content-Type": "text/html" });
@@ -88,8 +89,8 @@ const app = http.createServer(async (req, res) => {
     } finally {
       page = null;
     }
-    res.writeHead(504, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: e.message }));
+    res.writeHead(504, { "Content-Type": "text/plain" });
+    res.end(e.message);
   }
 });
 
