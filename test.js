@@ -1,5 +1,5 @@
 (async () => {
-  const isLocal = false;
+  const isLocal = true;
   // await (
   //   await fetch(
   //     isLocal
