@@ -1,13 +1,5 @@
 (async () => {
-  const isLocal = false;
-  // await (
-  //   await fetch(
-  //     isLocal
-  //       ? "http://localhost:4000/?url=https://pixabay.com/images/search/mountain sky/"
-  //       : "https://puppeteer-xy1o.onrender.com/?url=https://pixabay.com/images/search/sky/"
-  //   )
-  // ).text();
-  // setTimeout(async () => {
+  const isLocal = true;
   const resp = await fetch(
     isLocal
       ? "http://localhost:4000/?url=https://pixabay.com/images/search/night/"

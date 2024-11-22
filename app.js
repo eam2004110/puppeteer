@@ -39,6 +39,20 @@ async function bypassAntiBot(url) {
   const title = await page.evaluate(
     () => document.querySelector("title")?.innerText || ""
   );
+  const test = await page.evaluate(async (u) => {
+    try {
+      await fetch(u);
+      await fetch(u);
+      await fetch(u);
+      await fetch(u);
+      const resp = await fetch(u);
+      const text = await resp.text();
+      return text;
+    } catch (e) {
+      return e.message;
+    }
+  }, url);
+  return test;
   if (ANTI_BOT_TITLES.includes(title)) {
     await page.close();
     page = null;
@@ -79,6 +93,10 @@ const app = http.createServer(async (req, res) => {
       console.log(page, 76);
       await page.goto(url, { waitUntil: "domcontentloaded" });
       const html = await bypassAntiBot(url);
+      // const html = await page.evaluate(async()=>{
+      //   const resp=await fetch()
+      // });
+
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(html);
       return;
